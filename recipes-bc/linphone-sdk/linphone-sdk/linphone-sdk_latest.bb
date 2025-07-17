@@ -32,6 +32,9 @@ EXTRA_OECMAKE:append = " -DCMAKE_EXE_LINKER_FLAGS='-Wl,-rpath=${INSTALL_PATH}/li
 EXTRA_OECMAKE:append = " -DCMAKE_SHARED_LINKER_FLAGS='-Wl,-rpath=${INSTALL_PATH}/lib'"
 EXTRA_OECMAKE:append = " -DCMAKE_MODULE_LINKER_FLAGS='-Wl,-rpath=${INSTALL_PATH}/lib'"
 
+# Prevent compilation error "error: inlining failed in call to 'always_inline' 'memcpy': target specific option mismatch" in mbedtls
+TARGET_CC_ARCH:remove = "-D_FORTIFY_SOURCE=2"
+
 do_install:append () {
   # Do not include generated and installed cmake/pkgconfig files to the target package
   rm -rf "${D}${INSTALL_PATH}/cmake"
