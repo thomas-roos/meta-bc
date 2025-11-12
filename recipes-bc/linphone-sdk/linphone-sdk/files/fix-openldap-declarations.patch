@@ -1,0 +1,26 @@
+From: Q CLI <q@amazon.com>
+Subject: Fix openldap function declarations for modern C
+Upstream-Status: Inappropriate [embedded specific]
+
+--- a/external/openldap/include/ac/string.h
++++ b/external/openldap/include/ac/string.h
+@@ -58,7 +58,7 @@
+ #elif !defined(_WIN32)
+ 	/* some systems fail to declare strdup */
+ 	/* Windows does not require this declaration */
+-	LDAP_LIBC_F(char *) (strdup)();
++	LDAP_LIBC_F(char *) (strdup)(const char *);
+ #endif
+ 
+ /*
+@@ -68,8 +68,8 @@
+ 
+ /* we don't want these declared for Windows or Mingw */
+ #ifndef _WIN32
+-int (strcasecmp)();
+-int (strncasecmp)();
++int (strcasecmp)(const char *, const char *);
++int (strncasecmp)(const char *, const char *, size_t);
+ #endif
+ 
+ #ifdef _MSC_VER

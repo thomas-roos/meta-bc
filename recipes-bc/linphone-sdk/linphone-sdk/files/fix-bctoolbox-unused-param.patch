@@ -1,0 +1,19 @@
+Disable unused-parameter warning for GCC 15+ compatibility
+
+The _bctbx_logv_flush function has an unused dummy parameter that triggers
+-Werror=unused-parameter with GCC 15+. Disable this warning for bctoolbox.
+
+Upstream-Status: Inappropriate [workaround for GCC 15 compatibility]
+
+--- a/bctoolbox/src/CMakeLists.txt
++++ b/bctoolbox/src/CMakeLists.txt
+@@ -20,6 +20,9 @@
+ #
+ ############################################################################
+ 
++# Disable unused-parameter warning for GCC 15+ compatibility
++list(APPEND STRICT_OPTIONS_C "-Wno-unused-parameter")
++
+ set(BCTOOLBOX_C_SOURCE_FILES
+ 	containers/list.c
+ 	logging/logging.c

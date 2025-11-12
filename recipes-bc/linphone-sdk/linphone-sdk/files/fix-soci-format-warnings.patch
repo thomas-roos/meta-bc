@@ -1,0 +1,15 @@
+From: Q CLI <q@amazon.com>
+Subject: Disable format-overflow warnings in soci
+Upstream-Status: Inappropriate [embedded specific]
+
+--- a/external/soci/src/core/CMakeLists.txt
++++ b/external/soci/src/core/CMakeLists.txt
+@@ -10,6 +10,8 @@
+ ###############################################################################
+ colormsg(_HIBLUE_ "Configuring SOCI core library:")
+ 
++add_compile_options(-Wno-format-overflow)
++
+ # Set INCLUDE_DIRECTORIES
+ get_directory_property(SOCI_CORE_INCLUDE_DIRS INCLUDE_DIRECTORIES)
+ list(APPEND SOCI_CORE_INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR})

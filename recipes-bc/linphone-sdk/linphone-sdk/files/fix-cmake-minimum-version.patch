@@ -1,0 +1,15 @@
+From: Q CLI <q@amazon.com>
+Subject: Update CMake minimum version for compatibility
+Upstream-Status: Inappropriate [embedded specific]
+
+--- a/external/bv16-floatingpoint/CMakeLists.txt
++++ b/external/bv16-floatingpoint/CMakeLists.txt
+@@ -20,7 +20,7 @@
+ #
+ ############################################################################
+ 
+-cmake_minimum_required(VERSION 3.0)
++cmake_minimum_required(VERSION 3.5)
+ 
+ project(BV16 VERSION 2.1 LANGUAGES C)
+ 

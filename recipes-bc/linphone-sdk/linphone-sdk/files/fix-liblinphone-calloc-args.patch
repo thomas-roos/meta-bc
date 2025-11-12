@@ -1,0 +1,18 @@
+Fix calloc argument order in lp_new0 macro
+
+GCC 15 warns about transposed calloc arguments. Fix the macro to use
+correct order: calloc(n, size) instead of calloc(size, n).
+
+Upstream-Status: Inappropriate [workaround for GCC 15 compatibility]
+
+--- a/liblinphone/coreapi/lpconfig.c
++++ b/liblinphone/coreapi/lpconfig.c
+@@ -68,7 +68,7 @@
+ #define RENAME_REQUIRES_NONEXISTENT_NEW_PATH 1
+ #endif
+ 
+-#define lp_new0(type, n) (type *)calloc(sizeof(type), n)
++#define lp_new0(type, n) (type *)calloc(n, sizeof(type))
+ 
+ #include "linphone/lpconfig.h"
+ #include "lpc2xml.h"

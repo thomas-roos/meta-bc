@@ -1,0 +1,18 @@
+Fix lpc2xml libxml2 deprecated API usage
+
+Cast handler to access input function pointer for libxml2 compatibility.
+
+Upstream-Status: Inappropriate [workaround for libxml2 API changes]
+
+--- a/liblinphone/coreapi/lpc2xml.c
++++ b/liblinphone/coreapi/lpc2xml.c
+@@ -44,7 +44,8 @@ static xmlChar *convert_iso_to_utf8(const char *in) {
+ 		}
+ 
+ 		temp = size - 1;
+-		ret = handler->input(out, &out_size, (const xmlChar *)in, &temp);
++		xmlCharEncodingInputFunc input_func = *(xmlCharEncodingInputFunc*)&handler->input;
++		ret = input_func(out, &out_size, (const xmlChar *)in, &temp);
+ 		if (ret < 0 || temp - size + 1) {
+ 			ms_free(out);
+ 			return NULL;

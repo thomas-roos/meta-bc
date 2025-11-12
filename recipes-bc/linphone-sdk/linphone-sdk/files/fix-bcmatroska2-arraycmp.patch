@@ -1,0 +1,22 @@
+Fix bcmatroska2 EbmlCmp function signature
+
+Change EbmlCmp to match arraycmp signature (const void* parameters).
+
+Upstream-Status: Inappropriate [workaround for GCC 15 compatibility]
+
+--- a/bcmatroska2/libebml2/ebmlmaster.c
++++ b/bcmatroska2/libebml2/ebmlmaster.c
+@@ -130,9 +130,11 @@ static err_t EBML_MasterSort(ebml_master* Element)
+ }
+ 
+-static int EbmlCmp(const ebml_element* Element, const ebml_element** a,const ebml_element** b)
++static int EbmlCmp(const void* Param, const void* a, const void* b)
+ {
+-    if ((*a)->Context->Id == (*b)->Context->Id)
++    const ebml_element** ea = (const ebml_element**)a;
++    const ebml_element** eb = (const ebml_element**)b;
++    if ((*ea)->Context->Id == (*eb)->Context->Id)
+-        return EBML_ElementCmp(*a,*b);
++        return EBML_ElementCmp(*ea, *eb);
+     return 0;
+ }

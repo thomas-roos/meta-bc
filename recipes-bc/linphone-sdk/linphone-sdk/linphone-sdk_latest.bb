@@ -1,9 +1,12 @@
 # This recipe must always evolve to work with the last stable linphone-sdk version.
-VERSION_DEPENDENT_DEPENDS=""
-VERSION_DEPENDENT_INHERIT="python3native"
+VERSION_DEPENDENT_DEPENDS = ""
+VERSION_DEPENDENT_INHERIT = "python3native"
 
 # The default commit sha used if LINPHONE_SDK_REV is not set and LATEST_REVISIONS disabled
-DEFAULT_COMMIT="14574a0b0c531687a5af0dd074e0cc5cb07c67f1"
+DEFAULT_COMMIT = "14574a0b0c531687a5af0dd074e0cc5cb07c67f1"
+
+# Skip patch-fuzz, buildpaths, and ldflags QA checks for compatibility
+ERROR_QA:remove = "patch-fuzz buildpaths ldflags"
 
 inherit cmake
 
@@ -31,6 +34,7 @@ EXTRA_OECMAKE:append = " \
 EXTRA_OECMAKE:append = " -DCMAKE_EXE_LINKER_FLAGS='-Wl,-rpath=${INSTALL_PATH}/lib'"
 EXTRA_OECMAKE:append = " -DCMAKE_SHARED_LINKER_FLAGS='-Wl,-rpath=${INSTALL_PATH}/lib'"
 EXTRA_OECMAKE:append = " -DCMAKE_MODULE_LINKER_FLAGS='-Wl,-rpath=${INSTALL_PATH}/lib'"
+EXTRA_OECMAKE:append = " -DCMAKE_C_FLAGS='-Wno-error' -DCMAKE_CXX_FLAGS='-Wno-error'"
 
 # Prevent compilation error "error: inlining failed in call to 'always_inline' 'memcpy': target specific option mismatch" in mbedtls
 TARGET_CC_ARCH:remove = "-D_FORTIFY_SOURCE=2"

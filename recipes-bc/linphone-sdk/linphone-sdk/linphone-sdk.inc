@@ -18,8 +18,6 @@ RPROVIDES:${PN} = "\
     mediastreamer2 mswebrtc \
     "
 
-S = "${WORKDIR}/git"
-
 inherit chrpath ${VERSION_DEPENDENT_INHERIT}
 
 python () {
@@ -43,7 +41,18 @@ python () {
     print(d.getVar('SRCREV', True))
 }
 
-SRC_URI = "gitsm://gitlab.linphone.org/BC/public/linphone-sdk.git;protocol=https;branch=${LINPHONE_SDK_BRANCH};"
+SRC_URI = "gitsm://gitlab.linphone.org/BC/public/linphone-sdk.git;protocol=https;branch=${LINPHONE_SDK_BRANCH};nobranch=1 \
+           file://fix-git-describe.patch \
+           file://fix-cmake-minimum-version.patch \
+           file://fix-soci-format-warnings.patch \
+           file://fix-openldap-declarations.patch \
+           file://fix-openldap-getpid.patch \
+           file://fix-bctoolbox-unused-param.patch \
+           file://fix-belle-sip-string-truncation.patch \
+           file://fix-bcmatroska2-arraycmp.patch \
+           file://fix-liblinphone-calloc-args.patch \
+           file://fix-lpc2xml-libxml2-api.patch \
+"
 
 python () {
     if os.getenv("LINPHONE_SDK_LIC_FILES_CHKSUM", '') != '':
@@ -98,3 +107,6 @@ SYSROOT_DIRS += "/opt"
 
 # Allow non-symlink .so files and static libraries in ${PN} package
 INSANE_SKIP:${PN} += "dev-so staticdev already-stripped"
+
+
+EXTRA_OECMAKE += "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
