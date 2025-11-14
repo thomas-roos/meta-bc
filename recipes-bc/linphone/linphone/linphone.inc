@@ -30,11 +30,68 @@ python do_patch:append() {
     f = f'{s}/src/db/main-db.cpp'
     with open(f, 'r') as file:
         content = file.read()
+    
+    # Fix 1: before + 1 and after + 1
     content = content.replace(
         'soci::rowset<soci::row> rows = (d->dbSession.getBackendSession()->prepare << query, soci::use(dbChatRoomId),\n\t\t\t                                soci::use(dbEventId), soci::use(before + 1), soci::use(after + 1));',
-        'unsigned int beforePlusOne = before + 1;\n\t\t\tunsigned int afterPlusOne = after + 1;\n\t\t\tsoci::rowset<soci::row> rows = (d->dbSession.getBackendSession()->prepare << query, soci::use(dbChatRoomId),\n\t\t\t                                soci::use(dbEventId), soci::use(beforePlusOne), soci::use(afterPlusOne));',
-        1
+        'unsigned int beforePlusOne = before + 1;\n\t\t\tunsigned int afterPlusOne = after + 1;\n\t\t\tsoci::rowset<soci::row> rows = (d->dbSession.getBackendSession()->prepare << query, soci::use(dbChatRoomId),\n\t\t\t                                soci::use(dbEventId), soci::use(beforePlusOne), soci::use(afterPlusOne));'
     )
+    
+    # Fix 2: chatMessage->getStorageId() at line ~1515
+    content = content.replace(
+        '\t\tsoci::rowset<soci::row> rows =\n\t\t    (session->prepare << query, soci::use(chatMessage->getStorageId()), soci::use(meAddressId));',
+        '\t\tlong long storageId = chatMessage->getStorageId();\n\t\tsoci::rowset<soci::row> rows =\n\t\t    (session->prepare << query, soci::use(storageId), soci::use(meAddressId));'
+    )
+    
+    # Fix 3: chatMessage->getStorageId() at line ~1538
+    content = content.replace(
+        '\t\tsoci::rowset<soci::row> rows = (session->prepare << query, soci::use(chatMessage->getStorageId()));',
+        '\t\tlong long storageId2 = chatMessage->getStorageId();\n\t\tsoci::rowset<soci::row> rows = (session->prepare << query, soci::use(storageId2));'
+    )
+    
+    # Fix 6: soci::use(0), soci::use(1) at line ~1914
+    content = content.replace(
+        '\t\tconst long long &organizerId = dbSession.resolveId(organizerRow, 3);\n\t\t*session << "INSERT INTO conference_info_participant (conference_info_id, participant_sip_address_id, deleted, "\n\t\t            "is_organizer) VALUES (:conferenceInfoId, :participantSipAddressId, :deleted, :isOrganizer)",\n\t\t    soci::use(dbConferenceInfoId), soci::use(organizerSipAddressId), soci::use(0), soci::use(1);',
+        '\t\tconst long long &organizerId = dbSession.resolveId(organizerRow, 3);\n\t\tint deleted = 0;\n\t\tint isOrganizer = 1;\n\t\t*session << "INSERT INTO conference_info_participant (conference_info_id, participant_sip_address_id, deleted, "\n\t\t            "is_organizer) VALUES (:conferenceInfoId, :participantSipAddressId, :deleted, :isOrganizer)",\n\t\t    soci::use(dbConferenceInfoId), soci::use(organizerSipAddressId), soci::use(deleted), soci::use(isOrganizer);'
+    )
+    
+    # Fix 7: soci::use(std::string()) at line ~1975
+    content = content.replace(
+        '\t\t\t\t// Set parameter string to an empty string\n\t\t\t\t*session << "UPDATE conference_info_participant SET params = :paramsStr  WHERE conference_info_id  = "\n\t\t\t\t            ":conferenceInfoId",\n\t\t\t\t    soci::use(std::string()), soci::use(dbConferenceInfoId);',
+        '\t\t\t\t// Set parameter string to an empty string\n\t\t\t\tstd::string emptyStr;\n\t\t\t\t*session << "UPDATE conference_info_participant SET params = :paramsStr  WHERE conference_info_id  = "\n\t\t\t\t            ":conferenceInfoId",\n\t\t\t\t    soci::use(emptyStr), soci::use(dbConferenceInfoId);'
+    )
+    
+    # Fix 4: dbSession.getLastInsertId() at line ~2733 - place BEFORE the *session statement
+    content = content.replace(
+        '\t\tif (!isNull)\n\t\t\t\t*session << \"INSERT INTO friend_app_data (friend_id, name, data) VALUES\"\n\t\t\t\t            \" (:friendId, \'legacy\', :data)\",\n\t\t\t\t    soci::use(dbSession.getLastInsertId()), soci::use(data);',
+        '\t\tif (!isNull) {\n\t\t\t\tlong long lastInsertId = dbSession.getLastInsertId();\n\t\t\t\t*session << \"INSERT INTO friend_app_data (friend_id, name, data) VALUES\"\n\t\t\t\t            \" (:friendId, \'legacy\', :data)\",\n\t\t\t\t    soci::use(lastInsertId), soci::use(data);\n\t\t\t}'
+    )
+    
+    # Fix 5: EPHEMERAL_MESSAGE_TASKS_MAX_NB - place BEFORE the ternary operator
+    content = content.replace(
+        '\tauto epoch = d->dbSession.getTimeWithSociIndicator(0);\n\t\tsoci::rowset<soci::row> rows =\n\t\t    getBackend() == MainDb::Backend::Sqlite3\n\t\t        ? (d->dbSession.getBackendSession()->prepare << query, soci::use(epoch.first),\n\t\t           soci::use(EPHEMERAL_MESSAGE_TASKS_MAX_NB))',
+        '\tauto epoch = d->dbSession.getTimeWithSociIndicator(0);\n\t\tint maxNb = EPHEMERAL_MESSAGE_TASKS_MAX_NB;\n\t\tsoci::rowset<soci::row> rows =\n\t\t    getBackend() == MainDb::Backend::Sqlite3\n\t\t        ? (d->dbSession.getBackendSession()->prepare << query, soci::use(epoch.first),\n\t\t           soci::use(maxNb))'
+    )
+    
+    # Fix 8: Remove ms_crypto_suite_to_string debug logging (function doesn't exist in this mediastreamer2 version)
+    content = content.replace(
+        '\t\t} else if (isEncryptionMandatory() && ms_crypto_suite_is_unencrypted(suite)) {\n\t\t\tlWarning() << "Not offering " << std::string(ms_crypto_suite_to_string(suite))\n\t\t\t           << " because either RTP or RTCP streams is not encrypted";\n\t\t} else {\n\t\t\tlWarning() << "Not offering " << std::string(ms_crypto_suite_to_string(suite));\n\t\t}',
+        '\t\t} else if (isEncryptionMandatory() && ms_crypto_suite_is_unencrypted(suite)) {\n\t\t\tlWarning() << "Not offering crypto suite because either RTP or RTCP streams is not encrypted";\n\t\t} else {\n\t\t\tlWarning() << "Not offering crypto suite";\n\t\t}'
+    )
+    
+    # Fix 8: Remove ms_crypto_suite_to_string debug logging in media-session.cpp
+    f2 = f'{s}/src/conference/session/media-session.cpp'
+    with open(f2, 'r') as file:
+        content2 = file.read()
+    
+    content2 = content2.replace(
+        '\t\t} else if (isEncryptionMandatory() && ms_crypto_suite_is_unencrypted(suite)) {\n\t\t\tlWarning() << "Not offering " << std::string(ms_crypto_suite_to_string(suite))\n\t\t\t           << " because either RTP or RTCP streams is not encrypted";\n\t\t} else {\n\t\t\tlWarning() << "Not offering " << std::string(ms_crypto_suite_to_string(suite));\n\t\t}',
+        '\t\t} else if (isEncryptionMandatory() && ms_crypto_suite_is_unencrypted(suite)) {\n\t\t\tlWarning() << "Not offering crypto suite because either RTP or RTCP streams is not encrypted";\n\t\t} else {\n\t\t\tlWarning() << "Not offering crypto suite";\n\t\t}'
+    )
+    
+    with open(f2, 'w') as file:
+        file.write(content2)
+    
     with open(f, 'w') as file:
         file.write(content)
 }
@@ -45,7 +102,7 @@ PACKAGECONFIG[zlib] = ", --disable-zlib, zlib"
 PACKAGECONFIG[video] = ",-DENABLE_VIDEO=NO"
 PACKAGECONFIG[mdns] = "-DENABLE_MDNS=YES,-DENABLE_MDNS=NO"
 
-EXTRA_OECMAKE += " -DENABLE_CONSOLE_UI=YES -DENABLE_GTK_UI=NO -DCMAKE_SKIP_INSTALL_RPATH=ON -DENABLE_CXX_WRAPPER=NO -DENABLE_VCARD=ON -DENABLE_STRICT=NO -DENABLE_LIME_X3DH=NO -DENABLE_QRCODE=NO -DENABLE_UNIT_TESTS=NO -DENABLE_TOOLS=NO -DENABLE_DAEMON=NO -DENABLE_SRTP=NO"
+EXTRA_OECMAKE += " -DENABLE_CONSOLE_UI=YES -DENABLE_GTK_UI=NO -DCMAKE_SKIP_INSTALL_RPATH=ON -DENABLE_CXX_WRAPPER=NO -DENABLE_VCARD=NO -DENABLE_STRICT=NO -DENABLE_LIME_X3DH=NO -DENABLE_QRCODE=NO -DENABLE_UNIT_TESTS=NO -DENABLE_TOOLS=NO -DENABLE_DAEMON=NO"
 EXTRA_OECMAKE += "-DCMAKE_INSTALL_DATAROOTDIR=share -DCMAKE_INSTALL_LIBDIR=lib"
 
 # Fix cross-compilation include directories cmake problem

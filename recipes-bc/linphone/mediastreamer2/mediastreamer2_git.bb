@@ -11,8 +11,7 @@ PR = "${INC_PR}.0"
 #        d.setVar('SRCREV', '62d456a13813f0628326de7038f25c9dbd873b5e')
 #}
 
-# Use at least this commit to fix compilation error
-SRCREV = "62d456a13813f0628326de7038f25c9dbd873b5e"
+SRCREV = "d1bff7e66998e2175ee7be23a2e778210e7209ff"
 
 # For visualisation
 python () {

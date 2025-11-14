@@ -1,0 +1,29 @@
+Fix refer callback signature for updated API
+
+The refer_received callback signature changed to accept LinphoneAddress,
+LinphoneHeaders, and LinphoneContent parameters instead of a simple string.
+
+Upstream-Status: Inappropriate [embedded specific]
+
+--- a/console/linphonec.c
++++ b/console/linphonec.c
+@@ -105,7 +105,7 @@ static void linphonec_call_encryption_changed(LinphoneCore *lc,
+ 
+ /* These are callback for linphone core */
+ static void linphonec_prompt_for_auth(LinphoneCore *lc, const char *realm, const char *username, const char *domain);
+-static void linphonec_display_refer(LinphoneCore *lc, const char *refer_to);
++static void linphonec_display_refer(LinphoneCore *lc, const LinphoneAddress *refer_to, const LinphoneHeaders *headers, const LinphoneContent *content);
+ static void linphonec_transfer_state_changed(LinphoneCore *lc, LinphoneCall *call, LinphoneCallState new_call_state);
+ 
+ static void linphonec_notify_presence_received(LinphoneCore *lc, LinphoneFriend *fid);
+@@ -188,8 +188,8 @@ static void linphonec_call_encryption_changed(LinphoneCore *lc,
+ /*
+  * Linphone core callback
+  */
+-static void linphonec_display_refer(BCTBX_UNUSED(LinphoneCore *lc), const char *refer_to) {
+-	linphonec_out("Receiving out of call refer to %s\n", refer_to);
++static void linphonec_display_refer(BCTBX_UNUSED(LinphoneCore *lc), BCTBX_UNUSED(const LinphoneAddress *refer_to), BCTBX_UNUSED(const LinphoneHeaders *headers), BCTBX_UNUSED(const LinphoneContent *content)) {
++	linphonec_out("Receiving out of call refer\n");
+ }
+ 
+ /*

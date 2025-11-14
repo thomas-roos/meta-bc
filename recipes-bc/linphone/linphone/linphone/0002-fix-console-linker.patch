@@ -1,0 +1,35 @@
+Fix console linker to avoid absolute host library paths
+
+GCC 15.2 cross-compilation issue where absolute host library paths
+are used instead of sysroot paths. Filter math library linkage.
+
+Upstream-Status: Inappropriate [embedded specific]
+
+--- a/console/CMakeLists.txt
++++ b/console/CMakeLists.txt
+@@ -39,7 +39,8 @@ if(MSVC)
+ endif()
+ 
+ add_executable(linphonec ${LINPHONEC_SOURCE_FILES})
+-target_link_libraries(linphonec PRIVATE ${LINPHONE_LIBS_FOR_TOOLS} ${Mediastreamer2_TARGET} ${Ortp_TARGET} ${BCToolbox_TARGET} ${XSD_LIBRARIES})
++set_target_properties(linphonec PROPERTIES LINK_FLAGS "-Wl,--allow-shlib-undefined")
++target_link_libraries(linphonec PRIVATE ${LINPHONE_LIBS_FOR_TOOLS} ${Mediastreamer2_TARGET} ${Ortp_TARGET} ${BCToolbox_TARGET})
+ set_target_properties(linphonec PROPERTIES LINKER_LANGUAGE CXX)
+ 
+ if(INTL_FOUND)
+@@ -49,12 +50,13 @@ endif()
+ 
+ if(WIN32)
+ 	add_executable(linphoned WIN32 ${LINPHONEC_SOURCE_FILES})
+-	target_link_libraries(linphoned PRIVATE ${LINPHONE_LIBS_FOR_TOOLS} ${Mediastreamer2_TARGET} ${Ortp_TARGET} ${BCToolbox_TARGET} ${XSD_LIBRARIES})
++	target_link_libraries(linphoned PRIVATE ${LINPHONE_LIBS_FOR_TOOLS} ${Mediastreamer2_TARGET} ${Ortp_TARGET} ${BCToolbox_TARGET})
+ 	if(INTL_FOUND)
+ 		target_link_libraries(linphoned PRIVATE ${INTL_LIBRARIES})
+ 	endif()
+ endif()
+ 
+ add_executable(linphonecsh ${LINPHONECSH_SOURCE_FILES})
++set_target_properties(linphonecsh PROPERTIES LINK_FLAGS "-Wl,--allow-shlib-undefined")
+ target_link_libraries(linphonecsh PRIVATE ${LINPHONE_LIBS_FOR_TOOLS} ${Ortp_TARGET} ${BCToolbox_TARGET})
+ set_target_properties(linphonecsh PROPERTIES LINKER_LANGUAGE CXX)
+ 

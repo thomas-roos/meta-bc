@@ -1,0 +1,16 @@
+Fix SOCI rvalue reference errors
+
+SOCI cannot bind to rvalues. Create local variables for temporary values.
+
+Upstream-Status: Inappropriate [embedded specific]
+
+--- a/src/db/main-db.cpp
++++ b/src/db/main-db.cpp
+@@ -4983,6 +4983,7 @@ list<shared_ptr<ChatMessage>> MainDbPrivate::getEphemeralMessages() {
+ 	    "SELECT event_id, chat_room_id FROM chat_message_ephemeral_timer WHERE expire_time < :time ORDER BY id DESC "
+ 	    "LIMIT :maxNb";
+ 	list<shared_ptr<ChatMessage>> chatMessages;
++	int maxNb = EPHEMERAL_MESSAGE_TASKS_MAX_NB;
+ 	auto epoch = d->dbSession.getTimeWithSociIndicator(0);
+ 	soci::rowset<soci::row> rows =
+ 	    getBackend() == MainDb::Backend::Sqlite3

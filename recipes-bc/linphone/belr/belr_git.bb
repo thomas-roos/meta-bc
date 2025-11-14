@@ -8,7 +8,7 @@ python () {
     if d.getVar('LATEST_REVISIONS', True) == "1":
         d.setVar('SRCREV', '${AUTOREV}')
     else:
-        d.setVar('SRCREV', '97f610a5e10f4756ac7177c61810ec29a045a551')
+        d.setVar('SRCREV', '44c30677fb520030061927122006e0ff3c3fe016')
 }
 
 # For visualisation
