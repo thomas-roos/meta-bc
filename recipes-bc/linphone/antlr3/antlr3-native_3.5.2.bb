@@ -4,7 +4,7 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/BSD-3-Clause;md5=550794465ba0ec5312d6919e203a55f9"
 
 SRC_URI = "https://www.antlr3.org/download/antlr-${PV}-complete.jar;name=jar;unpack=false"
-SRC_URI[jar.sha256sum] = "e781de9b3e2cc1297dfdaf656da946a1fd22f449bd9e0ce1e12d488976887f83"
+SRC_URI[jar.sha256sum] = "26ca659f47d77384f518cf2b6463892fcd4f0b0d4d8c0de2addf697e63e7326b"
 
 inherit native
 

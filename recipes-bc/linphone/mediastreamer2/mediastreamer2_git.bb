@@ -8,11 +8,11 @@ PR = "${INC_PR}.0"
 #    if d.getVar('LATEST_REVISIONS', True) == "1":
 #        d.setVar('SRCREV', '${AUTOREV}')
 #    else:
-#        d.setVar('SRCREV', '0a2143130e90fe6ef35129931b3fd98d40daa195')
+#        d.setVar('SRCREV', '62d456a13813f0628326de7038f25c9dbd873b5e')
 #}
 
 # Use at least this commit to fix compilation error
-SRCREV = "eb2af04948a1a0e0f3384f0e46c3513b0aa51e95"
+SRCREV = "62d456a13813f0628326de7038f25c9dbd873b5e"
 
 # For visualisation
 python () {
@@ -26,4 +26,4 @@ SRC_URI = "git://gitlab.linphone.org/BC/public/mediastreamer2.git;protocol=https
 PV = "git_${SRCREV}"
 PKGV = "${GITPKGVTAG}"
 
-LIC_FILES_CHKSUM = "file://COPYING;md5=c46082167a314d785d012a244748d803"
+LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=eb1e647870add0502f8f010b19de32af"

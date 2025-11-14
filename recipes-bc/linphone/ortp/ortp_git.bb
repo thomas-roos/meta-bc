@@ -8,7 +8,7 @@ python () {
     if d.getVar('LATEST_REVISIONS', True) == "1":
         d.setVar('SRCREV', '${AUTOREV}')
     else:
-        d.setVar('SRCREV', '4cea5e6e7b6da329030b4f34b66a6168b864bb1d')
+        d.setVar('SRCREV', '921abef1f96bd65907b05599b361bd484d7b563b')
 }
 
 # For visualisation
@@ -23,4 +23,4 @@ SRC_URI = "git://gitlab.linphone.org/BC/public/ortp.git;protocol=https;nobranch=
 PV = "git_${SRCREV}"
 PKGV = "${GITPKGVTAG}"
 
-LIC_FILES_CHKSUM = "file://COPYING;md5=c46082167a314d785d012a244748d803"
+LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=eb1e647870add0502f8f010b19de32af"

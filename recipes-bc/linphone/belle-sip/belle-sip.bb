@@ -2,13 +2,11 @@ require belle-sip.inc
 
 inherit gitpkgv
 
-PR = "${INC_PR}.0"
-
 python () {
     if d.getVar('LATEST_REVISIONS', True) == "1":
         d.setVar('SRCREV', '${AUTOREV}')
     else:
-        d.setVar('SRCREV', 'd8c5e9e08b3bd6640898e46850333f1ad900c8d2')
+        d.setVar('SRCREV', 'e7a1bee26e08c46d9f6f9f403fa7db922d11b90e')
 }
 
 # For visualisation
@@ -20,9 +18,10 @@ python () {
 
 #SRCREV = "c840e2192b2d0151cc895b844e44bfe0d2103fcf"
 SRC_URI = "git://gitlab.linphone.org/BC/public/belle-sip.git;protocol=https;nobranch=1"
+SRC_URI:remove = "file://pc.patch"
 PV = "git_${SRCREV}"
 PKGV = "${GITPKGVTAG}"
 
-LIC_FILES_CHKSUM = "file://COPYING;md5=9f9938e31db89d55a796e86808c96848;rev={SRCREV}"
+LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=ff3103b5db8ba4e2c66c511b7a73e407"
 
 

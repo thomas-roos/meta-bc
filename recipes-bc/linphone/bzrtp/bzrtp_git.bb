@@ -8,7 +8,7 @@ python () {
     if d.getVar('LATEST_REVISIONS', True) == "1":
         d.setVar('SRCREV', '${AUTOREV}')
     else:
-        d.setVar('SRCREV', '1ab274fa74f889769a656a7650f7aca5ea48679c')
+        d.setVar('SRCREV', '00860b0cb196ce636d6e55df65de1da294e3ee98')
 }
 
 # For visualisation
@@ -23,4 +23,4 @@ SRC_URI = "git://gitlab.linphone.org/BC/public/bzrtp.git;protocol=https;nobranch
 PV = "git_${SRCREV}"
 PKGV = "${GITPKGVTAG}"
 
-LIC_FILES_CHKSUM = "file://COPYING;md5=94d55d512a9ba36caa9b7df079bae19f"
+LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=ff3103b5db8ba4e2c66c511b7a73e407"

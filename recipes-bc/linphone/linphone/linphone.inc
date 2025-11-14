@@ -1,18 +1,64 @@
 DESCRIPTION = "Audio/video SIP-based IP phone (console edition)"
-LICENSE = "GPLv2"
+LICENSE = "AGPL-3.0-only"
 HOMEPAGE = "http://www.linphone.org/technical-corner/linphone/overview"
 SECTION = "network"
 SECTION_linphonec =  "console/network"
 
 INC_PR = "r0"
 
-DEPENDS = "libbellesip libortp libmediastreamer2 libxml2 libmswebrtc opus-bc libbctoolbox belr belcard"
-RDEPENDS:${PN} = "opus-bc "
+DEPENDS = "libbellesip libortp libmediastreamer2 libxml2 libopus libbctoolbox belr belcard openssl xerces-c soci jsoncpp pkgconfig-native"
+RDEPENDS:${PN} = "libopus"
 
 PROVIDES = "liblinphone linphonec"
 
+# Prevent GCC 15.2 from using absolute paths for system libraries
+LDFLAGS += "-Wl,--no-as-needed"
 
 inherit cmake gettext python3native
+
+do_configure:prepend() {
+    sed -i 's/cmake_minimum_required(VERSION [0-9.]*)/cmake_minimum_required(VERSION 3.5)/' ${S}/CMakeLists.txt
+    sed -i '/^project(/a find_package(OpenSSL REQUIRED)' ${S}/CMakeLists.txt
+    sed -i 's/find_package(ORTP REQUIRED)/find_package(PkgConfig REQUIRED)\npkg_check_modules(ORTP REQUIRED ortp)/' ${S}/CMakeLists.txt
+    sed -i 's/find_package(BcToolbox [0-9.]* REQUIRED.*/pkg_check_modules(BCTOOLBOX REQUIRED bctoolbox)/' ${S}/CMakeLists.txt
+    sed -i 's/calloc(sizeof(type),n)/calloc(n,sizeof(type))/' ${S}/coreapi/lpconfig.c
+}
+
+python do_patch:append() {
+    import subprocess
+    s = d.getVar('S')
+    f = f'{s}/src/db/main-db.cpp'
+    
+    # Read file
+    with open(f, 'r') as file:
+        content = file.read()
+    
+    # Fix SOCI rvalue errors
+    content = content.replace(
+        'soci::rowset<soci::row> rows =\n\t\t    (session->prepare << query, soci::use(chatMessage->getStorageId()), soci::use(meAddressId));',
+        'long long storageId = chatMessage->getStorageId();\n\t\tsoci::rowset<soci::row> rows =\n\t\t    (session->prepare << query, soci::use(storageId), soci::use(meAddressId));'
+    )
+    content = content.replace(
+        'soci::rowset<soci::row> rows = (session->prepare << query, soci::use(chatMessage->getStorageId()));',
+        'long long storageId2 = chatMessage->getStorageId();\n\t\tsoci::rowset<soci::row> rows = (session->prepare << query, soci::use(storageId2));'
+    )
+    content = content.replace(
+        'soci::use(EPHEMERAL_MESSAGE_TASKS_MAX_NB))',
+        'soci::use(maxNb))'
+    )
+    content = content.replace(
+        'soci::rowset<soci::row> rows =\n\t\t    getBackend() == MainDb::Backend::Sqlite3',
+        'int maxNb = EPHEMERAL_MESSAGE_TASKS_MAX_NB;\n\t\tsoci::rowset<soci::row> rows =\n\t\t    getBackend() == MainDb::Backend::Sqlite3'
+    )
+    content = content.replace(
+        'soci::rowset<soci::row> rows = (d->dbSession.getBackendSession()->prepare << query, soci::use(dbChatRoomId),\n\t\t\t                                soci::use(dbEventId), soci::use(before + 1), soci::use(after + 1));',
+        'unsigned int beforePlusOne = before + 1;\n\t\t\tunsigned int afterPlusOne = after + 1;\n\t\t\tsoci::rowset<soci::row> rows = (d->dbSession.getBackendSession()->prepare << query, soci::use(dbChatRoomId),\n\t\t\t                                soci::use(dbEventId), soci::use(beforePlusOne), soci::use(afterPlusOne));'
+    )
+    
+    # Write file
+    with open(f, 'w') as file:
+        file.write(content)
+}
 
 PACKAGECONFIG ??= "sqlite zlib video"
 PACKAGECONFIG[sqlite] = "-DENABLE_SQLITE_STORAGE=yes, -DENABLE_SQLITE_STORAGE=no, sqlite3"
@@ -20,7 +66,7 @@ PACKAGECONFIG[zlib] = ", --disable-zlib, zlib"
 PACKAGECONFIG[video] = ",-DENABLE_VIDEO=NO"
 PACKAGECONFIG[mdns] = "-DENABLE_MDNS=YES,-DENABLE_MDNS=NO"
 
-EXTRA_OECMAKE += " -DENABLE_CONSOLE_UI=NO -DENABLE_GTK_UI=NO -DCMAKE_SKIP_INSTALL_RPATH=ON -DENABLE_CXX_WRAPPER=NO -DENABLE_VCARD=ON"
+EXTRA_OECMAKE += " -DENABLE_CONSOLE_UI=NO -DENABLE_GTK_UI=NO -DCMAKE_SKIP_INSTALL_RPATH=ON -DENABLE_CXX_WRAPPER=NO -DENABLE_VCARD=ON -DENABLE_STRICT=NO -DENABLE_LIME_X3DH=NO -DENABLE_QRCODE=NO -DENABLE_UNIT_TESTS=NO -DENABLE_TOOLS=NO -DENABLE_DAEMON=NO"
 EXTRA_OECMAKE += "-DCMAKE_INSTALL_DATAROOTDIR=share -DCMAKE_INSTALL_LIBDIR=lib"
 
 # Fix cross-compilation include directories cmake problem
@@ -149,6 +195,9 @@ FILES:${PN}-rings = "${datadir}/sounds/linphone/rings"
 FILES:${PN}-dev += " \
     ${includedir} \
     ${libdir}/pkgconfig \
+    ${libdir}/liblinphone \
+    ${datadir}/LibLinphone \
+    ${datadir}/belr \
     ${prefix}/share/Linphone "
 
 

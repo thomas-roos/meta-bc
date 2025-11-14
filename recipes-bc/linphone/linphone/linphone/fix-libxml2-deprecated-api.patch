@@ -1,0 +1,39 @@
+Fix deprecated libxml2 API usage in lpc2xml.c
+
+The handler->input field is deprecated in newer libxml2 versions and
+causes compilation errors when compiled as C++. Use reinterpret_cast
+to access the deprecated field and suppress warnings.
+
+Upstream-Status: Pending
+
+Index: linphone-git_AUTOINC/coreapi/lpc2xml.c
+===================================================================
+--- linphone-git_AUTOINC.orig/coreapi/lpc2xml.c
++++ linphone-git_AUTOINC/coreapi/lpc2xml.c
+@@ -27,6 +27,10 @@
+ #define ISO_ENCODING "ISO-8859-1"
+ 
+ static xmlChar *convert_iso_to_utf8(const char *in) {
++#ifdef __cplusplus
++#pragma GCC diagnostic push
++#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
++#endif
+ 	xmlChar *out = NULL;
+ 	int ret, size, out_size, temp;
+ 	xmlCharEncodingHandlerPtr handler;
+@@ -43,7 +47,15 @@ static xmlChar *convert_iso_to_utf8(cons
+ 		}
+ 
+ 		temp = size - 1;
++#ifdef __cplusplus
++		/* Use reinterpret_cast to access deprecated union field in C++ */
++		auto input_func = *reinterpret_cast<xmlCharEncodingInputFunc*>(&handler->input);
++		ret = input_func(out, &out_size, (const xmlChar *)in, &temp);
++#pragma GCC diagnostic pop
++#else
+ 		ret = handler->input(out, &out_size, (const xmlChar *)in, &temp);
++#endif
++		
+ 		if (ret < 0 || temp - size + 1) {
+ 			ms_free(out);
+ 			return NULL;

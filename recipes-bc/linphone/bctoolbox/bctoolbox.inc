@@ -1,20 +1,22 @@
 DESCRIPTION = "SIP stack from Belledonne Communications"
-LICENSE = "GPLv2"
+LICENSE = "GPL-3.0-only"
 SECTION = "libs/network"
 
 INC_PR = "r0"
 
 
-DEPENDS = "libpolarssl-bc bcunit"
+DEPENDS = "libpolarssl-bc bcunit openssl"
 PROVIDES = "libbctoolbox"
 
 CFLAGS += "-Wno-error=array-parameter -Wno-error=stringop-overflow"
 
 #-DCMAKE_BUILD_TYPE=Release
-EXTRA_OECMAKE += " -DENABLE_STATIC=NO -DENABLE_TESTS=NO -DENABLE_TESTS_COMPONENT=ON -DCMAKE_SKIP_INSTALL_RPATH=ON -DENABLE_STRICT=NO"
+EXTRA_OECMAKE += " -DENABLE_STATIC=NO -DENABLE_TESTS=NO -DENABLE_TESTS_COMPONENT=NO -DCMAKE_SKIP_INSTALL_RPATH=ON -DENABLE_STRICT=NO -DENABLE_MBEDTLS=OFF -DENABLE_OPENSSL=ON"
 EXTRA_OECMAKE += "-DCMAKE_INSTALL_DATAROOTDIR=share -DCMAKE_INSTALL_LIBDIR=lib"
 
 INSANE_SKIP:${PN} += "dev-deps "
+
+FILES:${PN}-dev += "${datadir}/BCToolbox"
 
 inherit cmake pkgconfig
 
@@ -23,9 +25,5 @@ do_configure:prepend() {
 }
 
 #PACKAGES = "${PN}-dbg ${PN} ${PN}-doc ${PN}-dev "
-
-#-DCMAKE_BUILD_TYPE=Release
-EXTRA_OECMAKE += " -DENABLE_STATIC=NO -DENABLE_TESTS=NO -DENABLE_TESTS_COMPONENT=ON -DCMAKE_SKIP_INSTALL_RPATH=ON "
-EXTRA_OECMAKE += "-DCMAKE_INSTALL_DATAROOTDIR=share -DCMAKE_INSTALL_LIBDIR=lib"
 
 

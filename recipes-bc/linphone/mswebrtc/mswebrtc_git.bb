@@ -1,5 +1,5 @@
 PR = "r3"
-SRC_URI = "git://gitlab.linphone.org/BC/public/mswebrtc.git;protocol=https;protocol=https;nobranch=1"
+SRC_URI = "gitsm://gitlab.linphone.org/BC/public/mswebrtc.git;protocol=https;nobranch=1"
 
 python () {
     if d.getVar('LATEST_REVISIONS', True) == "1":

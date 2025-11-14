@@ -8,7 +8,7 @@ python () {
     if d.getVar('LATEST_REVISIONS', True) == "1":
         d.setVar('SRCREV', '${AUTOREV}')
     else:
-        d.setVar('SRCREV', 'fdce52526089e88c98f19b0d36483cc3d31ef9bd')
+        d.setVar('SRCREV', '97f610a5e10f4756ac7177c61810ec29a045a551')
 }
 
 # For visualisation
@@ -23,4 +23,4 @@ SRC_URI = "git://gitlab.linphone.org/BC/public/belr.git;protocol=https;nobranch=
 PV = "git_${SRCREV}"
 PKGV = "${GITPKGVTAG}"
 
-LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
+LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=ff3103b5db8ba4e2c66c511b7a73e407"
