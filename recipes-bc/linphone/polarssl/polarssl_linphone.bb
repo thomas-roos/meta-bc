@@ -7,3 +7,5 @@ SRC_URI = "git://gitlab.linphone.org/BC/public/external/polarssl.git;protocol=ht
 PV = "git_${SRCREV}"
 
 LIC_FILES_CHKSUM = "file://LICENSE;md5=751419260aa954499f7abaabaa882bbe"
+
+RDEPENDS:${PN} += "openssl"

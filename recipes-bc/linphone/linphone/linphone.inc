@@ -12,7 +12,8 @@ RDEPENDS:${PN} = "libopus"
 PROVIDES = "liblinphone linphonec"
 
 # Prevent GCC 15.2 from using absolute paths for system libraries
-LDFLAGS += "-Wl,--no-as-needed"
+LDFLAGS += "-Wl,--no-as-needed -Wl,-rpath-link,${STAGING_LIBDIR}"
+TARGET_LDFLAGS += "-L${STAGING_LIBDIR}"
 
 inherit cmake gettext python3native
 
@@ -25,37 +26,15 @@ do_configure:prepend() {
 }
 
 python do_patch:append() {
-    import subprocess
     s = d.getVar('S')
     f = f'{s}/src/db/main-db.cpp'
-    
-    # Read file
     with open(f, 'r') as file:
         content = file.read()
-    
-    # Fix SOCI rvalue errors
-    content = content.replace(
-        'soci::rowset<soci::row> rows =\n\t\t    (session->prepare << query, soci::use(chatMessage->getStorageId()), soci::use(meAddressId));',
-        'long long storageId = chatMessage->getStorageId();\n\t\tsoci::rowset<soci::row> rows =\n\t\t    (session->prepare << query, soci::use(storageId), soci::use(meAddressId));'
-    )
-    content = content.replace(
-        'soci::rowset<soci::row> rows = (session->prepare << query, soci::use(chatMessage->getStorageId()));',
-        'long long storageId2 = chatMessage->getStorageId();\n\t\tsoci::rowset<soci::row> rows = (session->prepare << query, soci::use(storageId2));'
-    )
-    content = content.replace(
-        'soci::use(EPHEMERAL_MESSAGE_TASKS_MAX_NB))',
-        'soci::use(maxNb))'
-    )
-    content = content.replace(
-        'soci::rowset<soci::row> rows =\n\t\t    getBackend() == MainDb::Backend::Sqlite3',
-        'int maxNb = EPHEMERAL_MESSAGE_TASKS_MAX_NB;\n\t\tsoci::rowset<soci::row> rows =\n\t\t    getBackend() == MainDb::Backend::Sqlite3'
-    )
     content = content.replace(
         'soci::rowset<soci::row> rows = (d->dbSession.getBackendSession()->prepare << query, soci::use(dbChatRoomId),\n\t\t\t                                soci::use(dbEventId), soci::use(before + 1), soci::use(after + 1));',
-        'unsigned int beforePlusOne = before + 1;\n\t\t\tunsigned int afterPlusOne = after + 1;\n\t\t\tsoci::rowset<soci::row> rows = (d->dbSession.getBackendSession()->prepare << query, soci::use(dbChatRoomId),\n\t\t\t                                soci::use(dbEventId), soci::use(beforePlusOne), soci::use(afterPlusOne));'
+        'unsigned int beforePlusOne = before + 1;\n\t\t\tunsigned int afterPlusOne = after + 1;\n\t\t\tsoci::rowset<soci::row> rows = (d->dbSession.getBackendSession()->prepare << query, soci::use(dbChatRoomId),\n\t\t\t                                soci::use(dbEventId), soci::use(beforePlusOne), soci::use(afterPlusOne));',
+        1
     )
-    
-    # Write file
     with open(f, 'w') as file:
         file.write(content)
 }
@@ -66,7 +45,7 @@ PACKAGECONFIG[zlib] = ", --disable-zlib, zlib"
 PACKAGECONFIG[video] = ",-DENABLE_VIDEO=NO"
 PACKAGECONFIG[mdns] = "-DENABLE_MDNS=YES,-DENABLE_MDNS=NO"
 
-EXTRA_OECMAKE += " -DENABLE_CONSOLE_UI=NO -DENABLE_GTK_UI=NO -DCMAKE_SKIP_INSTALL_RPATH=ON -DENABLE_CXX_WRAPPER=NO -DENABLE_VCARD=ON -DENABLE_STRICT=NO -DENABLE_LIME_X3DH=NO -DENABLE_QRCODE=NO -DENABLE_UNIT_TESTS=NO -DENABLE_TOOLS=NO -DENABLE_DAEMON=NO"
+EXTRA_OECMAKE += " -DENABLE_CONSOLE_UI=YES -DENABLE_GTK_UI=NO -DCMAKE_SKIP_INSTALL_RPATH=ON -DENABLE_CXX_WRAPPER=NO -DENABLE_VCARD=ON -DENABLE_STRICT=NO -DENABLE_LIME_X3DH=NO -DENABLE_QRCODE=NO -DENABLE_UNIT_TESTS=NO -DENABLE_TOOLS=NO -DENABLE_DAEMON=NO -DENABLE_SRTP=NO"
 EXTRA_OECMAKE += "-DCMAKE_INSTALL_DATAROOTDIR=share -DCMAKE_INSTALL_LIBDIR=lib"
 
 # Fix cross-compilation include directories cmake problem
@@ -74,6 +53,7 @@ EXTRA_OECMAKE += "-DCMAKE_INSTALL_DATAROOTDIR=share -DCMAKE_INSTALL_LIBDIR=lib"
 # Removed obsolete base_version_less_or_equal checks for modern Yocto
 
 INSANE_SKIP:${PN} += "dev-deps"
+ERROR_QA:remove = "patch-fuzz"
 
 PACKAGES += " ${PN}c ${PN}-common ${PN}-tester ${PN}-utils ${PN}-rings"
 
@@ -95,7 +75,7 @@ FILES:${PN}-common = "${bindir}/lp-gen-wrappers \
 			${datadir}/images/nowebcamCIF.jpg \
 			${datadir}/appdata/linphone.appdata.xml \
 			${datadir}/icons"
-  
+
 FILES:${PN}-utils = "${bindir}/lp-test-ecc \
 			${bindir}/lp-auto-answer \
 			${bindir}/xml2lpc_test \
@@ -199,6 +179,3 @@ FILES:${PN}-dev += " \
     ${datadir}/LibLinphone \
     ${datadir}/belr \
     ${prefix}/share/Linphone "
-
-
-

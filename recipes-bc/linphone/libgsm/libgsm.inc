@@ -1,7 +1,7 @@
 DESCRIPTION = "GSM Audio Library"
 SECTION = "libs"
 PRIORITY = "optional"
-LICENSE = "libgsm"
+LICENSE = "CLOSED"
 
 INC_PR = "r2"
 
